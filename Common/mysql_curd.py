@@ -70,7 +70,7 @@ class MysqlCURD:
                     conn.commit()
                 sign = True
         except Exception as e:
-            log.error("修改失败: %s" % e)
+            log.error("执行失败: %s" % e)
             conn.rollback()
         finally:
             conn.close()
