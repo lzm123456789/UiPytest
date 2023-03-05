@@ -19,3 +19,6 @@ class TestUser:
         lp.wait(3)
         actual_result = lp.get_text(lp.current_user)
         assert actual_result == "xxx"
+
+
+

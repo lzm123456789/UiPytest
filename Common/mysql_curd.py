@@ -23,7 +23,7 @@ class MysqlCURD:
                                    database=self.database,
                                    charset=self.charset)
         except Exception as e:
-            log.error("failed to connect to database: %s" % e)
+            log.error("连接数据失败: %s" % e)
             return None
 
     def mysql_r(self, sql, column=None):
@@ -35,7 +35,7 @@ class MysqlCURD:
                 cur.execute(sql)
                 rows = cur.fetchall()
         except Exception as e:
-            log.error("query failed: %s" % e)
+            log.error("查询失败: %s" % e)
         finally:
             conn.close()
         # 当sql没有指定具体查询字段的时候
@@ -48,7 +48,7 @@ class MysqlCURD:
                 value = rows[0][0]
             # 当查询为空的时候
             else:
-                log.error("the query result is empty !")
+                log.error("查询结果为空 !")
             return value
 
     def mysql_cud(self, sql, have_semicolon=0):
@@ -70,7 +70,7 @@ class MysqlCURD:
                     conn.commit()
                 sign = True
         except Exception as e:
-            log.error("modify failed: %s" % e)
+            log.error("修改失败: %s" % e)
             conn.rollback()
         finally:
             conn.close()
@@ -93,7 +93,7 @@ class MysqlCURD:
                 conn.commit()
                 sign = True
         except Exception as e:
-            log.error("execute procedure failed: %s" % e)
+            log.error("执行存储过程失败: %s" % e)
         finally:
             cur.close()
             conn.close()
