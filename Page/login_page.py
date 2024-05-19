@@ -1,9 +1,9 @@
 # coding=utf-8
-from Common.base_page import PCBaseUI
+from Common.base_page import WebBaseUI
 from selenium.webdriver.common.by import By
 
 
-class LoginPage(PCBaseUI):
+class LoginPage(WebBaseUI):
     """登录页面"""
 
     url = ["/user/login", "登录页面"]

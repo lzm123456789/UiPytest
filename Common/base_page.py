@@ -4,7 +4,9 @@ import time
 from Log import log
 from Config import config
 from selenium import webdriver
+from appium import webdriver as app_driver
 from selenium.webdriver.support.ui import WebDriverWait
+from appium.webdriver.mobilecommand import MobileCommand
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -64,6 +66,22 @@ def describe(func):
                     log.info('判断元素 ' + args[1][1] + ' 是否存在')
                 elif func.__name__ == 'quit':
                     log.info('退出浏览器')
+                elif func.__name__ == 'android_app_driver':
+                    log.info('启动安卓app')
+                elif func.__name__ == 'ios_app_driver':
+                    log.info('启动iOS app')
+                elif func.__name__ == 'click_coordinates':
+                    log.info('点击屏幕，横纵坐标位置比例(' + args[1][1] + ',' + args[2][1] + ')')
+                elif func.__name__ == 'switch_h5':
+                    log.info('切换到app h5页面')
+                elif func.__name__ == 'switch_app':
+                    log.info('切换到app原生页面')
+                elif func.__name__ == 'enableAppiumUnicodeIME':
+                    log.info('设置appium输入法生效')
+                elif func.__name__ == 'enableSogouIME':
+                    log.info('设置搜狗输入法生效')
+                elif func.__name__ == 'quit_app':
+                    log.info('关闭app')
                 else:
                     log.error('未知操作')
 
@@ -94,11 +112,50 @@ def chrome_driver():
 
 
 @describe
+def android_app_driver(appPackage, appActivity):
+    # 启动安卓app
+
+    app_parameters = {
+        'platformName': 'Android',
+        'platformVersion': 'x.x',
+        'deviceName': 'xxx',
+        'appPackage': appPackage,
+        'appActivity': appActivity,
+        'unicodeKeyboard': True,
+        'resetKeyboard': True,
+        'noReset': True,
+        'noSign': True,
+        # 'app': r'D:\app\test.apk'
+        # 'newCommandTimeout': '70'
+    }
+    return app_driver.Remote('http://127.0.0.1:4723/wd/hub', app_parameters)
+
+
+@describe
+def ios_app_driver(bundleId, udid):
+    # 启动iOS app
+
+    app_parameters = {
+        'platformName': 'ios',
+        'platformVersion': 'x.x',
+        'deviceName': 'xxx',
+        'bundleId': bundleId,
+        'udid': udid,
+    }
+    return app_driver.Remote('http://127.0.0.1:4723/wd/hub', app_parameters)
+
+
+@describe
 def quit(driver):
     driver.quit()
 
 
-class PCBaseUI:
+@describe
+def quit_app(driver):
+    driver.quit()
+
+
+class WebBaseUI:
     pc_host = config.get_conf('web_ui', 'pc_host')
 
     def __init__(self, driver, pc_host=pc_host):
@@ -212,3 +269,58 @@ class PCBaseUI:
     @describe
     def close(self):
         self.driver.close()
+
+
+class AppBaseUI:
+    def __init__(self, driver):
+        self.driver = driver
+
+    def locate_element(self, loc):
+        time.sleep(0.5)
+        return WebDriverWait(self.driver, 5).until(EC.presence_of_element_located(loc[0]))
+
+    @describe
+    def click(self, loc):
+        self.locate_element(loc).click()
+
+    @describe
+    def clear(self, loc):
+        self.locate_element(loc).clear()
+
+    @describe
+    def input(self, loc, text):
+        self.locate_element(loc).send_keys(text)
+
+    @describe
+    def is_element_exist(self, loc):
+        try:
+            self.locate_element(loc)
+            log.info('app元素存在')
+            return True
+        except:
+            log.info('app元素不存在')
+            return False
+
+    @describe
+    def click_coordinates(self, locationx, locationy):
+        x = self.driver.get_window_size()['width']
+        y = self.driver.get_window_size()['height']
+        x1 = int(x * locationx)
+        y1 = int(y * locationy)
+        self.driver.swipe(x1, y1, x1, y1, 500)
+
+    @describe
+    def switch_h5(self, h5_name):
+        self.driver.execute(MobileCommand.SWITCH_TO_CONTEXT, {"name": h5_name})
+
+    @describe
+    def switch_app(self):
+        self.driver.execute(MobileCommand.SWITCH_TO_CONTEXT, {"name": "NATIVE_APP"})
+
+    @describe
+    def enableAppiumUnicodeIME(self):
+        os.system('adb shell ime set io.appium.android.ime/.UnicodeIME')
+
+    @describe
+    def enableSogouIME(self):
+        os.system('adb shell ime set com.sohu.inputmethod.sogou/.SogouIME')
